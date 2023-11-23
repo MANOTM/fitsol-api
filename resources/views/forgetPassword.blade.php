@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
         <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
     </head>
@@ -15,7 +15,7 @@
                 <div class="flex justify-center items-center ">
                     <img src="https://res.cloudinary.com/drln0tnyu/image/upload/v1699733049/svgviewer-output_xtck1g.png" alt="Image" class="" />
                   </div>
-                <h3 class="text-2xl">Thanks for signing up for Fitsol!</h3>
+                <h3 class="text-2xl">Reset password for Fitsol!</h3>
                 <div class="flex justify-center">
                     <svg class="w-32 h-32" viewBox="0 0 50 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
@@ -36,10 +36,10 @@
                         </defs>
                     </svg>
                 </div>
-                <p>We're happy you're here. Let's get your email address verified:</p>
+                <p>click to reset ur password in 2 seconds:</p>
                 <div class="mt-4">
-                    <a href="{{$data}}" class="px-2 py-2 bg-black text-white rounded">Click to Verify Email</a>
-                    <p class="mt-4 text-sm text-red-500">Verification codes expire after two hours.
+                    <a href="{{$data}}" class="px-2 py-2 bg-black text-white rounded">reset password</a>
+                    <p class="mt-4 text-sm text-black">If you didn't request a password reset, please ignore this email.
                     </p>
                 </div>
             </div>

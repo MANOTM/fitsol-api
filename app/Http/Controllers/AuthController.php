@@ -9,8 +9,12 @@ use App\Models\User;
 use App\Mail\VerifyToken;
 
 use App\Models\VerifyEmail;
+use Illuminate\Support\Str;
+use App\Mail\ForgetPassword;
 use Illuminate\Http\Request;
+use App\Models\PasswordReset;
 use App\Traits\HttpResponses;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -34,49 +38,27 @@ class AuthController extends Controller
         }
         $HashPass=Hash::make($request->password);
 
-        User::create([
+        $user= User::create([
             'fname' => $request->fname,
             'lname' => $request->lname,
             'email' => $request->email,
             'password' => $HashPass,
         ]);
 
-        $token = rand(100000, 999999);
-
-        VerifyEmail::create([
-            'email'=>$request->email,
-            'token'=>$token
-        ]);
-
-        Mail::to($request->email)->send(new VerifyToken($token));
+        $token = $user->createToken('auth_token')->plainTextToken;
+        Mail::to($request->email)->send(new VerifyToken(env('APP_DOMAIN').'login?token='.$token));
 
         return $this->response([],'Email Sent successfully');
     }
 
     public function verifyToken(Request $request){
 
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email|max:255|exists:verify_emails',
-            'token' => 'required|string|min:6',
-        ]);
-        if ($validator->fails()) {
-            return $this->response([],$validator->errors(),400);
-        }
-
-        $VerifyEmail=VerifyEmail::where('email',$request->email)->first();
-        $createdAt = Carbon::parse($VerifyEmail->created_at);
-        $twoHoursAgo = Carbon::now()->subHours(2);
-
-        if ($createdAt->lessThan($twoHoursAgo)) {
-            return $this->response([],'Token expire',400);
-        }
-        if( $VerifyEmail->token!=$request->token  ){
-            return $this->response([],'Token invalid or expire',400);
-        }
-        $user=User::Where('email',$request->email)->first();
-        $user->update([
+        auth()->user()->update([
             'email_verified_at'=>Carbon::now()
         ]);
+        return $this->response([auth()->user()],'okok');
+
+        auth()->user()->tokens()->delete();
         return $this->response([],'Email Verify successfully');
     }
 
@@ -113,10 +95,11 @@ class AuthController extends Controller
         if (!Auth::attempt($request->only('email', 'password'))) {
             return $this->response([],'Invalid login details',401);
         }
-        $user = User::Where('email',$request->email)->first();
+        $user =new UserResource(User::Where('email',$request->email)->first());
+
         $user->tokens()->delete();
         if(is_null($user->email_verified_at)){
-            return $this->response([],'Email not verified');
+            return $this->response([],'Email not verified',401);
         }
         $token = $user->createToken('auth_token')->plainTextToken;
         $user->token=$token;
@@ -126,5 +109,64 @@ class AuthController extends Controller
     public function logout(){
         auth()->user()->tokens()->delete();
         return $this->response([],'successfully');
+    }
+    public function me(){
+        $user =new UserResource(User::Where('email',auth()->user()->email)->first());
+        return $this->response($user,'successfully');
+    }
+    public function FotgertPassword(Request $request){
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email|max:255|exists:users',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->response([],$validator->errors(),400);
+        }
+        $token=Str::random(30);
+        PasswordReset::updateOrCreate(
+            ['email'=>$request->email],
+            ['token'=>$token]
+        );
+        Mail::to($request->email)->send(new ForgetPassword(env('APP_DOMAIN').'reset?token='.$token.'&email='.$request->email));
+        return $this->response([],'Email Sent successfully');
+    }
+    public function CheckToken(Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email|max:255|exists:password_reset_tokens',
+            'token'=>'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->response([],$validator->errors(),400);
+        }
+
+        $password_check=PasswordReset::Where('email',$request->email)->first();
+        if($password_check->token!=$request->token){
+            return $this->response([],'incorect',401);
+        }
+        return $this->response([],'good');
+
+    }
+    public function resetPassword(Request $request ){
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email|max:255|exists:users',
+            'token' => 'required|string',
+            'fpassword'=>'required|min:5',
+            'spassword'=>'required|min:5|same:fpassword',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->response([],$validator->errors(),400);
+        }
+        $password_check=PasswordReset::Where('email',$request->email)->first();
+        if($password_check->token!=$request->token){
+            return $this->response([],'incorect',401);
+        }
+        $user=User::Where('email',$request->email)->first();
+        $user->password=Hash::make($request->fpassword);
+        $user->save();
+        return $this->response([],'password update successfully');
+
     }
 }

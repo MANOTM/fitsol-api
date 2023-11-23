@@ -18,11 +18,14 @@ use Illuminate\Support\Facades\Auth;
 
 Route::controller(AuthController::class)->group(function(){
     Route::post('/register','register');
-    Route::post('/verifyToken','verifyToken');
+    Route::post('/verifyToken','verifyToken')->middleware('auth:sanctum');
     Route::post('/resentToken','resentToken');
     Route::post('/login','login');
+    Route::post('/FotgertPassword','FotgertPassword');
+    Route::post('/CheckToken','CheckToken');
     Route::post('/resetPassword','resetPassword');
     Route::post('/logout','logout')->middleware('auth:sanctum');
+    Route::post('/me','me')->middleware('auth:sanctum');
 });
 
 

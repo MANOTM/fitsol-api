@@ -10,7 +10,8 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Address;
 
-class VerifyToken extends Mailable
+
+class ForgetPassword extends Mailable
 {
     use Queueable, SerializesModels;
     public $data;
@@ -30,7 +31,7 @@ class VerifyToken extends Mailable
     {
         return new Envelope(
             from: new Address('otmanehub1@gmail.com', 'fitsol'),
-            subject: 'verify email',
+            subject: 'reset password',
         );
     }
 
@@ -40,7 +41,7 @@ class VerifyToken extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'VerifyEmail',
+            view: 'forgetPassword',
         );
     }
 
@@ -53,5 +54,4 @@ class VerifyToken extends Mailable
     {
         return [];
     }
-
 }
