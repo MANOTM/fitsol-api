@@ -15,9 +15,9 @@ class CheckPass
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(!$request->API_PASS || $request->API_PASS!=env('API_PASS')){
-            return response()->json('unauthenticated');
-        }
+        // if(!$request->API_PASS || $request->API_PASS!=env('API_PASS')){
+        //     return response('unauthenticated',401);
+        // }
         return $next($request);
     }
 }
